@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+:root {
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --color-primary: #8C5329;
+  --color-primary-hover: #70401E;
+  --color-wood-oak: #D4A373;
+  --color-wood-walnut: #43281C;
+  --color-bg-light: #FAF8F5;
+  --color-card-bg: #FFFFFF;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-light);
+  color: #2D2A26;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, .font-serif-luxury {
+  font-family: var(--font-serif);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F0EAE1;
+}
+::-webkit-scrollbar-thumb {
+  background: #C4A482;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9A7B56;
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(220, 208, 195, 0.6);
+}
+
+.glass-dark {
+  background: rgba(30, 25, 22, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Luxury wood badge */
+.wood-badge {
+  background: linear-gradient(135deg, #F5EBE0 0%, #E3D5CA 100%);
+  border: 1px solid #D5BDAF;
+  color: #582F0E;
+}
+
+/* Pulsing effect for AI indicators */
+@keyframes softPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+.animate-soft-pulse {
+  animation: softPulse 2.8s infinite ease-in-out;
+}
