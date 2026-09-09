@@ -10,6 +10,14 @@ binding = "DB"
 database_name = "furproject-db"
 database_id = "507651c1-c120-431c-8a6f-10a2a26ecbc2"
 
+# Cloudflare R2 Image Storage Bucket:
+# To activate, create bucket named 'aifurniture-assets' at:
+# https://dash.cloudflare.com/bdabe4aea9213333a58407b82899ee27/r2/overview
+# and then uncomment the lines below:
+# [[r2_buckets]]
+# binding = "R2_ASSETS"
+# bucket_name = "aifurniture-assets"
+
 [vars]
 STORE_NAME = "ABC Luxury Furniture"
 CURRENCY = "VND"

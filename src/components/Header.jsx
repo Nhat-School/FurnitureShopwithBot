@@ -10,7 +10,10 @@ export default function Header({
   searchQuery,
   setSearchQuery,
   selectedCategory,
-  setSelectedCategory
+  setSelectedCategory,
+  currentUser,
+  onOpenAuth,
+  onOpenAdmin
 }) {
   const categories = [
     { id: 'all', name: 'Tất Cả' },
@@ -105,6 +108,34 @@ export default function Header({
             >
               <Truck className="w-5 h-5" />
             </button>
+
+            {/* Admin Management Button (If Admin) */}
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={onOpenAdmin}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-[#2D241E] text-[#D4A373] hover:bg-black transition border border-[#D4A373]/40 shadow-xs"
+              >
+                <span>⚙️ Quản Trị D1</span>
+              </button>
+            )}
+
+            {/* User Account / Google Login Button */}
+            {currentUser ? (
+              <div 
+                onClick={onOpenAuth}
+                className="flex items-center gap-2 cursor-pointer p-1.5 rounded-xl hover:bg-[#F5EBE0] transition"
+                title={`${currentUser.name} (${currentUser.role})`}
+              >
+                <img src={currentUser.avatar_url || currentUser.avatar} alt="" className="w-8 h-8 rounded-full border border-[#8C5329]" />
+              </div>
+            ) : (
+              <button
+                onClick={onOpenAuth}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white hover:bg-[#F5EBE0] text-[#582F0E] transition border border-[#D5BDAF]"
+              >
+                <span>Đăng Nhập</span>
+              </button>
+            )}
 
             {/* Shopping Cart Button */}
             <button

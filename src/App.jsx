@@ -7,6 +7,8 @@ import AIConsultantModal from './components/AIConsultantModal';
 import CartDrawer from './components/CartDrawer';
 import ProductDetailModal from './components/ProductDetailModal';
 import OrderTrackModal from './components/OrderTrackModal';
+import AuthModal from './components/AuthModal';
+import AdminProductModal from './components/AdminProductModal';
 import { Sparkles, Compass, Truck, Filter, ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
 
 const INITIAL_CATALOG = [
@@ -188,6 +190,25 @@ export default function App() {
   const [aiInitialPrompt, setAiInitialPrompt] = useState('');
   const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const [detailProduct, setDetailProduct] = useState(null);
+  
+  // Auth & Admin State
+  const [currentUser, setCurrentUser] = useState({
+    id: 'usr_admin',
+    name: 'Phạm Văn Nhất (Admin)',
+    email: 'phamnhat7625@gmail.com',
+    role: 'admin',
+    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Pham%20Nhat'
+  });
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  function handleProductCreated(newProd) {
+    setProducts(prev => [newProd, ...prev]);
+  }
+
+  function handleProductDeleted(id) {
+    setProducts(prev => prev.filter(p => p.id !== id));
+  }
 
   // Fetch products from serverless API if available
   useEffect(() => {
@@ -278,6 +299,9 @@ export default function App() {
         setSearchQuery={setSearchQuery}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
       <main className="flex-1">
@@ -514,6 +538,21 @@ export default function App() {
       <OrderTrackModal
         isOpen={isTrackerOpen}
         onClose={() => setIsTrackerOpen(false)}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        currentUser={currentUser}
+        onLoginSuccess={(user) => setCurrentUser(user)}
+      />
+
+      <AdminProductModal
+        isOpen={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        products={products}
+        onProductCreated={handleProductCreated}
+        onProductDeleted={handleProductDeleted}
       />
 
       {/* Footer */}
