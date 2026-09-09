@@ -1,19 +1,16 @@
-name = "furproject"
+name = "aifurniture"
 compatibility_date = "2026-05-20"
 pages_build_output_dir = "dist"
 
 [ai]
 binding = "AI"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "furproject-db"
+database_id = "507651c1-c120-431c-8a6f-10a2a26ecbc2"
+
 [vars]
 STORE_NAME = "ABC Luxury Furniture"
 CURRENCY = "VND"
 ENVIRONMENT = "production"
-
-# Note: Once you create your D1 database in the dashboard, you can add it in
-# Cloudflare Pages -> Settings -> Bindings -> D1 database (Variable: DB)
-# or uncomment below with your real D1 Database UUID:
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "furproject-db"
-# database_id = "<YOUR_REAL_D1_DATABASE_UUID>"

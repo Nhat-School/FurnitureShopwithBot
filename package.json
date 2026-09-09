@@ -1,5 +1,5 @@
 {
-  "name": "furproject",
+  "name": "aifurniture",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name=furproject"
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=aifurniture"
   },
   "dependencies": {
     "lucide-react": "^1.16.0",
