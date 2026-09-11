@@ -95,14 +95,22 @@ export async function onRequest({ request, env }) {
     if (segments[0] === 'auth') {
       if (segments[1] === 'google' && method === 'POST') {
         const body = await request.json();
-        const { email, name, role, avatar } = body;
+        const { email, name, avatar } = body;
+
+        const cleanEmail = (email || '').trim().toLowerCase();
+        const isAdmin = cleanEmail === 'nhaterik@gmail.com' || cleanEmail === 'ducnhan762013@gmail.com';
+        const assignedRole = isAdmin ? 'admin' : 'guest';
+        
+        let defaultName = 'Khách Vãng Lai';
+        if (cleanEmail === 'nhaterik@gmail.com') defaultName = 'Nhật Erik (Admin)';
+        else if (cleanEmail === 'ducnhan762013@gmail.com') defaultName = 'Đức Nhân (Admin)';
 
         const user = {
           id: `usr_${Date.now()}`,
-          email: email || 'user@example.com',
-          name: name || 'Google User',
-          role: role || (email?.includes('phamnhat') || email?.includes('nhaterik') ? 'admin' : 'customer'),
-          avatar_url: avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || 'User')}`
+          email: cleanEmail || 'guest@example.com',
+          name: name || defaultName,
+          role: assignedRole,
+          avatar_url: avatar || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name || defaultName)}`
         };
 
         // Persist to D1 if available
@@ -114,7 +122,7 @@ export async function onRequest({ request, env }) {
                 email TEXT UNIQUE NOT NULL,
                 name TEXT NOT NULL,
                 avatar_url TEXT,
-                role TEXT DEFAULT 'customer',
+                role TEXT DEFAULT 'guest',
                 created_at TEXT DEFAULT (datetime('now'))
               )
             `).run();
@@ -134,9 +142,10 @@ export async function onRequest({ request, env }) {
       if (segments[1] === 'me' && method === 'GET') {
         return jsonResponse({
           user: {
-            email: 'phamnhat7625@gmail.com',
-            name: 'Phạm Văn Nhất (Admin)',
-            role: 'admin'
+            email: 'nhaterik@gmail.com',
+            name: 'Nhật Erik (Admin)',
+            role: 'admin',
+            avatar_url: 'https://api.dicebear.com/7.x/initials/svg?seed=Nhat%20Erik'
           }
         });
       }

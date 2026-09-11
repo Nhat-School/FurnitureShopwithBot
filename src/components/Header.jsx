@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag, Sparkles, Compass, Truck, Search, Mic, Camera } from 'lucide-react';
+import { ShoppingBag, Sparkles, Compass, Truck, Search, Mic, Camera, Crown, User } from 'lucide-react';
 
 export default function Header({ 
   cartCount, 
@@ -123,10 +123,28 @@ export default function Header({
             {currentUser ? (
               <div 
                 onClick={onOpenAuth}
-                className="flex items-center gap-2 cursor-pointer p-1.5 rounded-xl hover:bg-[#F5EBE0] transition"
-                title={`${currentUser.name} (${currentUser.role})`}
+                className="flex items-center gap-2 cursor-pointer p-1 px-2.5 rounded-xl hover:bg-[#F5EBE0] transition border border-[#D5BDAF]/60 bg-white/80 shadow-2xs"
+                title={`${currentUser.name} (${currentUser.email}) - ${currentUser.role === 'admin' ? 'Admin' : 'Guest'}`}
               >
-                <img src={currentUser.avatar_url || currentUser.avatar} alt="" className="w-8 h-8 rounded-full border border-[#8C5329]" />
+                <img 
+                  src={currentUser.avatar_url || currentUser.avatar} 
+                  alt={currentUser.name} 
+                  className="w-7 h-7 rounded-full border border-[#8C5329] object-cover" 
+                />
+                <div className="hidden md:flex flex-col text-left leading-tight">
+                  <span className="text-xs font-bold text-[#2D241E] max-w-[110px] truncate">{currentUser.name}</span>
+                  <span className={`text-[10px] font-bold flex items-center gap-0.5 ${currentUser.role === 'admin' ? 'text-[#8C5329]' : 'text-stone-500'}`}>
+                    {currentUser.role === 'admin' ? (
+                      <>
+                        <Crown className="w-2.5 h-2.5 text-amber-600 inline" /> Admin
+                      </>
+                    ) : (
+                      <>
+                        <User className="w-2.5 h-2.5 inline" /> Guest
+                      </>
+                    )}
+                  </span>
+                </div>
               </div>
             ) : (
               <button

@@ -191,14 +191,34 @@ export default function App() {
   const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const [detailProduct, setDetailProduct] = useState(null);
   
-  // Auth & Admin State
-  const [currentUser, setCurrentUser] = useState({
-    id: 'usr_admin',
-    name: 'Phạm Văn Nhất (Admin)',
-    email: 'phamnhat7625@gmail.com',
+  // Auth & Admin State (Default Admin: nhaterik@gmail.com or ducnhan762013@gmail.com)
+  const DEFAULT_ADMIN_USER = {
+    id: 'usr_admin_nhaterik',
+    name: 'Nhật Erik (Admin)',
+    email: 'nhaterik@gmail.com',
     role: 'admin',
-    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Pham%20Nhat'
+    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Nhat%20Erik'
+  };
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fur_user');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return DEFAULT_ADMIN_USER;
   });
+
+  function handleUpdateUser(user) {
+    setCurrentUser(user);
+    try {
+      if (user) {
+        localStorage.setItem('fur_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('fur_user');
+      }
+    } catch (e) {}
+  }
+
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
@@ -544,7 +564,8 @@ export default function App() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         currentUser={currentUser}
-        onLoginSuccess={(user) => setCurrentUser(user)}
+        onLoginSuccess={handleUpdateUser}
+        onLogout={() => handleUpdateUser(null)}
       />
 
       <AdminProductModal
