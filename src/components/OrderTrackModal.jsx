@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Search, Truck, CheckCircle2, Clock, MapPin, PackageCheck } from 'lucide-react';
 
-export default function OrderTrackModal({ isOpen, onClose }) {
-  const [trackingCode, setTrackingCode] = useState('ABC-VN-83921');
+export default function OrderTrackModal({ isOpen, onClose, initialTrackingCode = '' }) {
+  const [trackingCode, setTrackingCode] = useState(initialTrackingCode || 'ABC-VN-83921');
   const [trackingData, setTrackingData] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSearch(e) {
-    e?.preventDefault();
-    if (!trackingCode.trim()) return;
-
+  const lookupTracking = useCallback(async (code) => {
+    if (!code || !code.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/orders/${trackingCode.trim()}`);
+      const res = await fetch(`/api/orders/${encodeURIComponent(code.trim())}`);
       if (res.ok) {
         const data = await res.json();
         setTrackingData(data);
@@ -20,9 +18,9 @@ export default function OrderTrackModal({ isOpen, onClose }) {
         throw new Error('Order not found');
       }
     } catch (err) {
-      // Mock tracking timeline
+      // Mock tracking timeline fallback
       setTrackingData({
-        trackingCode: trackingCode.toUpperCase(),
+        trackingCode: code.toUpperCase(),
         status: 'Đang Vận Chuyển Chuyên Dụng (In Transit)',
         carrier: 'Đội xe vận tải nội thất cồng kềnh ABC',
         estimatedDelivery: '14:00 - 17:00 ngày mai',
@@ -35,6 +33,18 @@ export default function OrderTrackModal({ isOpen, onClose }) {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && initialTrackingCode) {
+      setTrackingCode(initialTrackingCode);
+      lookupTracking(initialTrackingCode);
+    }
+  }, [initialTrackingCode, isOpen, lookupTracking]);
+
+  function handleSearch(e) {
+    e?.preventDefault();
+    lookupTracking(trackingCode);
   }
 
   if (!isOpen) return null;
@@ -48,7 +58,11 @@ export default function OrderTrackModal({ isOpen, onClose }) {
             <Truck className="w-5 h-5 text-[#D4A373]" />
             <h3 className="font-serif text-base font-bold">Theo Dõi Đơn Hàng Cồng Kềnh</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10 text-stone-300 hover:text-white">
+          <button 
+            onClick={onClose} 
+            className="p-1 rounded-full hover:bg-white/10 text-stone-300 hover:text-white transition cursor-pointer"
+            title="Đóng"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -66,10 +80,10 @@ export default function OrderTrackModal({ isOpen, onClose }) {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2.5 bg-[#582F0E] text-white rounded-xl text-xs font-semibold hover:bg-[#43281C] transition shadow-xs flex items-center gap-1.5"
+              className="px-4 py-2.5 bg-[#582F0E] text-white rounded-xl text-xs font-semibold hover:bg-[#43281C] transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
               <Search className="w-3.5 h-3.5" />
-              <span>Tra Cứu</span>
+              <span>{loading ? 'Đang Tìm...' : 'Tra Cứu'}</span>
             </button>
           </form>
 
@@ -79,15 +93,15 @@ export default function OrderTrackModal({ isOpen, onClose }) {
               <div className="p-4 rounded-2xl bg-[#F5EBE0] border border-[#D5BDAF] space-y-2">
                 <div className="flex justify-between text-xs">
                   <span className="text-stone-500">Mã vận đơn:</span>
-                  <span className="font-mono font-bold text-[#8C5329]">{trackingData.trackingCode}</span>
+                  <span className="font-mono font-bold text-[#8C5329]">{trackingData.trackingCode || trackingData.tracking_code}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-stone-500">Trạng thái hiện tại:</span>
-                  <span className="font-semibold text-emerald-700">{trackingData.status}</span>
+                  <span className="font-semibold text-emerald-700">{trackingData.status || trackingData.shipping_status || 'Đang Vận Chuyển'}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-stone-500">Dự kiến giao:</span>
-                  <span className="font-semibold text-[#2D241E]">{trackingData.estimatedDelivery}</span>
+                  <span className="font-semibold text-[#2D241E]">{trackingData.estimatedDelivery || trackingData.estimated_delivery || '14:00 - 17:00 ngày mai'}</span>
                 </div>
               </div>
 
@@ -95,7 +109,11 @@ export default function OrderTrackModal({ isOpen, onClose }) {
               <div className="space-y-3 pt-2">
                 <h4 className="text-xs font-bold text-[#2D241E]">Lịch Trình Vận Chuyển</h4>
                 <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#D5BDAF]">
-                  {trackingData.timeline.map((item, idx) => (
+                  {(trackingData.timeline || [
+                    { time: '14:30 Hôm qua', status: 'Xác nhận đơn hàng', desc: 'Thanh toán thành công, kiểm tra kích thước lọt lòng thang máy.' },
+                    { time: '09:15 Hôm nay', status: 'Xuất kho phân loại', desc: 'Đóng kiện góc gỗ, bọc màng co PE 3 lớp chống ẩm.' },
+                    { time: '13:00 Hôm nay', status: 'Đang trung chuyển', desc: 'Xe tải chuyên dụng 2.5 tấn đang di chuyển theo lộ trình.' }
+                  ]).map((item, idx) => (
                     <div key={idx} className="relative">
                       <div className="absolute -left-6 top-1 w-4 h-4 rounded-full bg-[#8C5329] text-white flex items-center justify-center text-[9px] shadow-xs">
                         ✓

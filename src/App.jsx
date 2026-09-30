@@ -9,6 +9,8 @@ import ProductDetailModal from './components/ProductDetailModal';
 import OrderTrackModal from './components/OrderTrackModal';
 import AuthModal from './components/AuthModal';
 import AdminProductModal from './components/AdminProductModal';
+import OrderHistoryModal from './components/OrderHistoryModal';
+import AddressBookModal from './components/AddressBookModal';
 import { Sparkles, Compass, Truck, Filter, ArrowRight, CheckCircle2, RotateCcw } from 'lucide-react';
 
 const INITIAL_CATALOG = [
@@ -189,12 +191,16 @@ export default function App() {
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [aiInitialPrompt, setAiInitialPrompt] = useState('');
   const [isTrackerOpen, setIsTrackerOpen] = useState(false);
+  const [trackingCodeToView, setTrackingCodeToView] = useState('');
   const [detailProduct, setDetailProduct] = useState(null);
+  const [isOrderHistoryOpen, setIsOrderHistoryOpen] = useState(false);
+  const [isAddressBookOpen, setIsAddressBookOpen] = useState(false);
   
   // Auth & Admin State (Default Admin: nhaterik@gmail.com or ducnhan762013@gmail.com)
   const DEFAULT_ADMIN_USER = {
     id: 'usr_admin_nhaterik',
     name: 'Nhật Erik (Admin)',
+    display_name: 'Nhật Erik (Admin)',
     email: 'nhaterik@gmail.com',
     role: 'admin',
     avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Nhat%20Erik'
@@ -229,6 +235,29 @@ export default function App() {
   function handleProductDeleted(id) {
     setProducts(prev => prev.filter(p => p.id !== id));
   }
+
+  // Session Restoration & OAuth Redirect Handling on Initial Mount (Satisfies T1.F12.4)
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.user) {
+          handleUpdateUser(data.user);
+        }
+      })
+      .catch(() => {
+        // Keeps local cached or default admin state
+      });
+
+    // Cleanup ?auth=success query param if present
+    if (typeof window !== 'undefined' && window.location.search.includes('auth=')) {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('auth');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      } catch (e) {}
+    }
+  }, []);
 
   // Fetch products from serverless API if available
   useEffect(() => {
@@ -306,22 +335,36 @@ export default function App() {
     setIsAIOpen(true);
   }
 
+  function handleOpenTracker(code = '') {
+    if (typeof code === 'string' && code.trim()) {
+      setTrackingCodeToView(code.trim());
+    }
+    setIsTrackerOpen(true);
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F5]">
       {/* Navigation Header */}
       <Header
-        cartCount={cart.reduce((s, i) => s + i.quantity, 0)}
+        cartCount={cart.reduce((s, i) => s + (Number(i.quantity) || 1), 0)}
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAI={handleOpenAI}
         onOpenPlanner={() => setIsPlannerOpen(true)}
-        onOpenTracker={() => setIsTrackerOpen(true)}
+        onOpenTracker={() => handleOpenTracker()}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         currentUser={currentUser}
+        onUpdateUser={handleUpdateUser}
         onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenAuthModal={() => setIsAuthOpen(true)}
         onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenOrderHistory={() => setIsOrderHistoryOpen(true)}
+        onOpenOrders={() => setIsOrderHistoryOpen(true)}
+        onOpenAddressBook={() => setIsAddressBookOpen(true)}
+        onOpenAddresses={() => setIsAddressBookOpen(true)}
+        onLogout={() => handleUpdateUser(null)}
       />
 
       <main className="flex-1">
@@ -349,7 +392,7 @@ export default function App() {
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <button
                     onClick={() => setIsPlannerOpen(true)}
-                    className="px-6 py-3.5 bg-[#582F0E] hover:bg-[#43281C] text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition shadow-md"
+                    className="px-6 py-3.5 bg-[#582F0E] hover:bg-[#43281C] text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition shadow-md cursor-pointer"
                   >
                     <Compass className="w-4 h-4 text-[#D4A373]" />
                     <span>Mô Phỏng 2D Không Gian</span>
@@ -357,7 +400,7 @@ export default function App() {
 
                   <button
                     onClick={() => handleOpenAI('Hãy tư vấn cho tôi cách chọn nội thất phòng khách có diện tích 25m2')}
-                    className="px-6 py-3.5 bg-white hover:bg-[#F5EBE0] text-[#582F0E] rounded-xl text-xs font-bold uppercase tracking-wider border border-[#D5BDAF] flex items-center gap-2 transition shadow-xs"
+                    className="px-6 py-3.5 bg-white hover:bg-[#F5EBE0] text-[#582F0E] rounded-xl text-xs font-bold uppercase tracking-wider border border-[#D5BDAF] flex items-center gap-2 transition shadow-xs cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4 text-[#8C5329]" />
                     <span>Tư Vấn Cùng FurniAI</span>
@@ -398,7 +441,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => setIsPlannerOpen(true)}
-                      className="p-2 rounded-xl bg-[#582F0E] text-white hover:bg-[#43281C] transition"
+                      className="p-2 rounded-xl bg-[#582F0E] text-white hover:bg-[#43281C] transition cursor-pointer"
                     >
                       <ArrowRight className="w-4 h-4" />
                     </button>
@@ -463,7 +506,7 @@ export default function App() {
                     setSearchQuery('');
                     setMaxWidthFilter(250);
                   }}
-                  className="flex items-center gap-1 text-[#8C5329] hover:underline px-2 py-1 text-xs"
+                  className="flex items-center gap-1 text-[#8C5329] hover:underline px-2 py-1 text-xs cursor-pointer"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Đặt lại lọc</span>
@@ -484,7 +527,7 @@ export default function App() {
                   setSearchQuery('');
                   setMaxWidthFilter(250);
                 }}
-                className="mt-4 px-4 py-2 bg-[#8C5329] text-white rounded-xl text-xs font-semibold"
+                className="mt-4 px-4 py-2 bg-[#8C5329] text-white rounded-xl text-xs font-semibold cursor-pointer"
               >
                 Xem Toàn Bộ Sản Phẩm
               </button>
@@ -510,7 +553,7 @@ export default function App() {
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => handleOpenAI()}
-          className="group flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-[#8C5329] to-[#582F0E] text-white rounded-full shadow-2xl hover:shadow-amber-900/30 hover:scale-105 transition-all duration-300 border border-[#D4A373]/40"
+          className="group flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-[#8C5329] to-[#582F0E] text-white rounded-full shadow-2xl hover:shadow-amber-900/30 hover:scale-105 transition-all duration-300 border border-[#D4A373]/40 cursor-pointer"
         >
           <div className="relative">
             <Sparkles className="w-5 h-5 text-[#FFD166] animate-spin-slow" />
@@ -542,8 +585,16 @@ export default function App() {
         cartItems={cart}
         onUpdateQuantity={handleUpdateCartQty}
         onRemoveItem={handleRemoveFromCart}
+        user={currentUser}
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onOpenTracker={handleOpenTracker}
         onOrderSuccess={(order) => {
           setCart([]);
+          const code = order?.tracking_code || order?.trackingCode;
+          if (code) {
+            setTrackingCodeToView(code);
+          }
         }}
       />
 
@@ -558,6 +609,31 @@ export default function App() {
       <OrderTrackModal
         isOpen={isTrackerOpen}
         onClose={() => setIsTrackerOpen(false)}
+        initialTrackingCode={trackingCodeToView}
+      />
+
+      <OrderHistoryModal
+        isOpen={isOrderHistoryOpen}
+        onClose={() => setIsOrderHistoryOpen(false)}
+        currentUser={currentUser}
+        onOpenAuth={() => {
+          setIsOrderHistoryOpen(false);
+          setIsAuthOpen(true);
+        }}
+        onTrackOrder={(code) => {
+          setIsOrderHistoryOpen(false);
+          handleOpenTracker(code);
+        }}
+      />
+
+      <AddressBookModal
+        isOpen={isAddressBookOpen}
+        onClose={() => setIsAddressBookOpen(false)}
+        currentUser={currentUser}
+        onOpenAuth={() => {
+          setIsAddressBookOpen(false);
+          setIsAuthOpen(true);
+        }}
       />
 
       <AuthModal
